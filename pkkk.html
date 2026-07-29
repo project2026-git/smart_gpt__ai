@@ -1,0 +1,2175 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hindu Engineering College - Student Portal & AI Tutor</title>
+    
+    <!-- 🌐 Load Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- 🔠 Load Premium Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- ⚛️ Load React and Babel via CDN for browser runtime execution -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- 🔌 Load Socket.io Client (loaded from CDN to support direct file:// local access) -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+    <!-- 📷 QRCode.js — client-side QR generation (no external API needed) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        /* 🎨 Custom Properties: Pastel Aqua · Baby Pink · Sky Blue Palette */
+        :root {
+            /* 🌸 Background tones */
+            --bg-base:        #f0fafa;      /* Lightest aqua-tinted white */
+            --bg-surface:     #ffffff;      /* Card/panel surfaces */
+            --bg-elevated:    #e8f8f8;      /* Slightly deeper aqua panels */
+            --bg-grid:        rgba(100, 210, 210, 0.18); /* Soft aqua grid lines */
+
+            /* 🩵 Aqua / Aquamarine accents */
+            --aqua-primary:   #2ec4b6;     /* Vibrant aquamarine */
+            --aqua-light:     #7eecd8;     /* Bright aqua highlight */
+            --aqua-dark:      #1a9b8e;     /* Deep aqua shadow */
+            --aqua-glow:      rgba(46, 196, 182, 0.28); /* Glow */
+
+            /* 🩷 Baby Pink accents */
+            --pink-primary:   #f7a8c4;     /* Soft baby pink */
+            --pink-light:     #fdd1e4;     /* Very light blush */
+            --pink-dark:      #e07aa0;     /* Deeper rose */
+            --pink-glow:      rgba(247, 168, 196, 0.30);
+
+            /* 🩵 Sky Blue accents */
+            --blue-primary:   #74c7ec;     /* Pastel sky blue */
+            --blue-light:     #b8e4f9;     /* Light ice blue */
+            --blue-dark:      #3b96c5;     /* Mid-depth blue */
+
+            /* 🖋️ Text */
+            --text-main:      #1a2e38;     /* Dark charcoal — readable */
+            --text-secondary: #3d6672;     /* Teal-grey mid tone */
+            --text-muted:     #7fa8b5;     /* Soft muted teal */
+
+            /* 🔲 Borders */
+            --border-color:   rgba(46, 196, 182, 0.30);
+            --border-hover:   rgba(46, 196, 182, 0.60);
+            --border-pink:    rgba(247, 168, 196, 0.40);
+
+            /* UI dimensions */
+            --border-radius-lg: 18px;
+            --border-radius-md: 10px;
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 🌐 Core resets */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+
+            /* 📐 Subtle soft aqua grid */
+            background-image:
+                linear-gradient(var(--bg-grid) 1px, transparent 1px),
+                linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+            background-size: 35px 35px;
+            background-position: center center;
+        }
+
+        /* 💡 Floating ambient glow blobs */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 10%;
+            left: 55%;
+            transform: translate(-50%, -50%);
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(46,196,182,0.12) 0%, rgba(116,199,236,0.08) 40%, transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+            filter: blur(60px);
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 80%;
+            left: 15%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(247,168,196,0.13) 0%, transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+            filter: blur(50px);
+        }
+
+        /* 🏷️ Headings Typography */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: var(--text-main);
+        }
+
+        /* 🖨️ Mono Data Typography */
+        .data-text, code, .stats, .timestamp {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.9em;
+            letter-spacing: -0.02em;
+        }
+
+        /* 📦 App Container */
+        #root {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            z-index: 1;
+            position: relative;
+            width: 100%;
+        }
+
+        /* 🏛️ Layout Header */
+        .app-header {
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 16px rgba(46,196,182,0.10);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-crest {
+            font-size: 1.6em;
+            color: var(--aqua-primary);
+            filter: drop-shadow(0 0 8px var(--aqua-glow));
+            animation: crestPulse 3s infinite ease-in-out;
+        }
+
+        .logo-text h1 {
+            font-size: 1.3em;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--aqua-dark) 0%, var(--blue-dark) 50%, var(--pink-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .logo-text p {
+            font-size: 0.7em;
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        /* 🔋 Connection Indicator */
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(46, 196, 182, 0.08);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 0.85em;
+            color: var(--aqua-dark);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--aqua-primary);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--aqua-primary);
+        }
+
+        /* 🛋️ Portal Stage Shell Area */
+        .portal-viewport {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            width: 100%;
+        }
+
+        /* 🏛️ Stage Cards styling */
+        .portal-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+            position: relative;
+            box-shadow:
+                0 10px 40px rgba(46,196,182,0.12),
+                0 4px 16px rgba(247,168,196,0.10),
+                0 0 0 1px rgba(46,196,182,0.08);
+            transition: var(--transition-smooth);
+            animation: cardFadeIn 0.5s ease-out;
+        }
+
+        .portal-card:hover {
+            border-color: var(--border-hover);
+            box-shadow:
+                0 16px 50px rgba(46,196,182,0.18),
+                0 8px 24px rgba(247,168,196,0.14),
+                0 0 0 1px var(--border-hover);
+            transform: translateY(-2px);
+        }
+
+        /* Card aqua top accent line */
+        .portal-card::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 20px;
+            right: 20px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--aqua-primary), var(--pink-primary), transparent);
+            border-radius: 2px;
+        }
+
+        .card-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .card-icon {
+            font-size: 2.8em;
+            color: var(--aqua-primary);
+            margin-bottom: 16px;
+            filter: drop-shadow(0 0 8px var(--aqua-glow));
+        }
+
+        .card-title {
+            font-size: 1.8em;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--aqua-dark), var(--blue-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card-subtitle {
+            font-size: 0.95em;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* 🎮 Wireframe Preview Components */
+        .wireframe-container {
+            border: 1px dashed var(--border-color);
+            background: rgba(46, 196, 182, 0.03);
+            border-radius: var(--border-radius-md);
+            padding: 24px;
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .wireframe-block {
+            height: 14px;
+            background: rgba(46, 196, 182, 0.08);
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wireframe-block::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(46,196,182,0.15), transparent);
+            animation: pulseShimmer 2s infinite;
+        }
+
+        .wireframe-block.half { width: 50%; }
+        .wireframe-block.short { width: 25%; }
+        .wireframe-block.three-quarters { width: 75%; }
+
+        /* 🔘 Buttons */
+        .portal-btn {
+            width: 100%;
+            padding: 14px 20px;
+            border-radius: var(--border-radius-md);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .portal-btn-primary {
+            background: linear-gradient(135deg, var(--aqua-primary) 0%, var(--blue-primary) 60%, var(--pink-primary) 100%);
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 16px var(--aqua-glow);
+        }
+
+        .portal-btn-primary:hover {
+            background: linear-gradient(135deg, var(--aqua-dark) 0%, var(--aqua-primary) 60%, var(--pink-dark) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(46,196,182,0.38);
+        }
+
+        .portal-btn-secondary {
+            background: transparent;
+            color: var(--aqua-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .portal-btn-secondary:hover {
+            background: rgba(46, 196, 182, 0.08);
+            border-color: var(--aqua-primary);
+            color: var(--aqua-dark);
+        }
+
+        /* 🎛️ Debug / Toggle Buttons */
+        .debug-panel {
+            background: rgba(255, 255, 255, 0.90);
+            backdrop-filter: blur(15px);
+            border-top: 1px solid var(--border-color);
+            padding: 16px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+            z-index: 100;
+            box-shadow: 0 -4px 20px rgba(46,196,182,0.10);
+        }
+
+        .debug-title {
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--aqua-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .debug-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .debug-btn {
+            background: rgba(46, 196, 182, 0.06);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: var(--border-radius-md);
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            font-family: 'IBM Plex Mono', monospace;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .debug-btn:hover {
+            color: var(--aqua-dark);
+            border-color: var(--aqua-primary);
+            background: rgba(46, 196, 182, 0.12);
+        }
+
+        .debug-btn.active {
+            background: linear-gradient(135deg, var(--aqua-primary), var(--blue-primary));
+            color: #fff;
+            border-color: var(--aqua-primary);
+            font-weight: 600;
+            box-shadow: 0 0 12px var(--aqua-glow);
+        }
+
+        /* 🎬 Keyframe Animations */
+        @keyframes crestPulse {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px var(--aqua-glow)); }
+            50% { transform: scale(1.08); filter: drop-shadow(0 0 18px rgba(46,196,182,0.50)); }
+        }
+
+        @keyframes pulseShimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        @keyframes cardFadeIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* 🔳 QR Login Modal animations */
+        @keyframes qrFadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        @keyframes qrSlideUp {
+            from { opacity: 0; transform: translateY(28px) scale(0.95); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes qrPopIn {
+            from { transform: scale(0); opacity: 0; }
+            to   { transform: scale(1); opacity: 1; }
+        }
+
+        /* 📱 Responsive viewports */
+        @media (max-width: 600px) {
+            .portal-card { padding: 24px; }
+            .app-header { padding: 12px 16px; }
+        }
+
+        /* 🪪 Laminated ID-Badge Card Styles */
+        .laminate-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                125deg,
+                rgba(255,255,255,0.55) 0%,
+                rgba(255,255,255,0.15) 20%,
+                transparent 20%,
+                transparent 55%,
+                rgba(255,255,255,0.10) 55%,
+                rgba(255,255,255,0.25) 60%,
+                transparent 60%
+            );
+            pointer-events: none;
+            z-index: 10;
+            border-radius: var(--border-radius-lg);
+        }
+
+        .badge-slot {
+            width: 70px;
+            height: 14px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 7px;
+            margin: -25px auto 25px auto;
+            box-shadow: inset 0 2px 4px rgba(46,196,182,0.15);
+            position: relative;
+            z-index: 15;
+        }
+
+        .badge-crest {
+            font-size: 2.2em;
+            color: var(--aqua-primary);
+            text-align: center;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 0 6px var(--aqua-glow));
+        }
+
+        .badge-title-sub {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.75em;
+            color: var(--aqua-primary);
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            text-align: center;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+            text-align: left;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.8em;
+            color: var(--aqua-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 500;
+        }
+
+        .form-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-input-icon {
+            position: absolute;
+            left: 14px;
+            color: var(--aqua-primary);
+            font-size: 1em;
+            pointer-events: none;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 14px 12px 40px;
+            border: 1.5px solid var(--border-color);
+            background: rgba(240, 250, 250, 0.80);
+            color: var(--text-main);
+            border-radius: var(--border-radius-md);
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.95em;
+            transition: var(--transition-smooth);
+        }
+
+        .form-input::placeholder { color: var(--text-muted); }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--aqua-primary);
+            box-shadow: 0 0 0 3px rgba(46,196,182,0.15), 0 0 12px var(--aqua-glow);
+            background: #ffffff;
+        }
+
+        .email-preview-box {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, rgba(46,196,182,0.07), rgba(116,199,236,0.07));
+            border: 1px dashed var(--border-color);
+            border-radius: var(--border-radius-md);
+            font-size: 0.82em;
+            color: var(--aqua-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: cardFadeIn 0.3s ease-out;
+        }
+
+        .email-preview-text {
+            font-family: 'IBM Plex Mono', monospace;
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        .inline-error {
+            color: #e05c7a;
+            font-size: 0.8em;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+
+        /* 📱 Number Matching Flow styles */
+        .auth-split-container {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 30px;
+            width: 100%;
+            margin-top: 10px;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .auth-split-container {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+        }
+
+        .auth-computer-panel {
+            background: linear-gradient(135deg, rgba(46,196,182,0.05), rgba(116,199,236,0.05));
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            min-height: 280px;
+        }
+
+        .auth-target-number {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 3.5em;
+            font-weight: 700;
+            color: var(--aqua-dark);
+            text-shadow: 0 0 20px var(--aqua-glow);
+            margin: 20px 0;
+            letter-spacing: 0.05em;
+            background: linear-gradient(135deg, rgba(46,196,182,0.10), rgba(116,199,236,0.10));
+            padding: 10px 35px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border-color);
+        }
+
+        .auth-phone-frame {
+            background: linear-gradient(160deg, #e8f8f8 0%, #fce9f2 100%);
+            border: 4px solid var(--blue-light);
+            border-radius: 36px;
+            padding: 16px 12px 12px 12px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(46,196,182,0.15), 0 4px 12px rgba(247,168,196,0.15);
+            width: 100%;
+            max-width: 280px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            min-height: 330px;
+        }
+
+        .auth-phone-notch {
+            width: 100px;
+            height: 16px;
+            background: var(--blue-light);
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 30;
+        }
+
+        .auth-phone-screen {
+            background: #ffffff;
+            border: 1.5px solid var(--border-color);
+            border-radius: 24px;
+            flex: 1;
+            padding: 16px 12px 12px 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .auth-phone-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.65em;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .auth-phone-notification {
+            background: linear-gradient(135deg, rgba(46,196,182,0.07), rgba(247,168,196,0.07));
+            border: 1px solid var(--border-pink);
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(247,168,196,0.12);
+        }
+
+        .auth-phone-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+            z-index: 25;
+            position: relative;
+        }
+
+        .auth-option-btn {
+            background: linear-gradient(135deg, rgba(46,196,182,0.08), rgba(116,199,236,0.08));
+            border: 1.5px solid var(--border-color);
+            color: var(--text-main);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.3em;
+            font-weight: 600;
+            padding: 12px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            text-align: center;
+        }
+
+        .auth-option-btn:hover {
+            border-color: var(--aqua-primary);
+            color: var(--aqua-dark);
+            background: linear-gradient(135deg, rgba(46,196,182,0.18), rgba(116,199,236,0.18));
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px var(--aqua-glow);
+        }
+
+        .auth-option-btn:active {
+            transform: translateY(0);
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+         🌟  DASHBOARD SHELL — Premium 7-Card Layout
+         ═════════════════════════════════════════════════════════════════ */
+        .ds-shell {
+            width: 100%;
+            max-width: 1100px;
+            padding: 0 16px 40px;
+        }
+        .ds-welcome-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .ds-greeting {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--aqua-dark), var(--blue-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .ds-sub {
+            font-size: 0.82em;
+            color: var(--text-muted);
+            font-family: 'IBM Plex Mono', monospace;
+            margin-top: 2px;
+        }
+        .ds-logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 18px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.6);
+            color: var(--text-secondary);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            backdrop-filter: blur(8px);
+        }
+        .ds-logout-btn:hover {
+            border-color: #e05c7a;
+            color: #e05c7a;
+            background: rgba(224,92,122,0.06);
+        }
+        /* Stats row */
+        .ds-stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        .ds-stat-pill {
+            background: rgba(255,255,255,0.75);
+            border: 1.5px solid var(--border-color);
+            border-radius: 14px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 2px 12px rgba(46,196,182,0.08);
+            transition: var(--transition-smooth);
+        }
+        .ds-stat-pill:hover {
+            border-color: var(--aqua-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46,196,182,0.14);
+        }
+        .ds-stat-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            flex-shrink: 0;
+        }
+        .ds-stat-icon.aqua  { background: rgba(46,196,182,0.14);  color: var(--aqua-dark); }
+        .ds-stat-icon.pink  { background: rgba(247,168,196,0.18);  color: var(--pink-dark); }
+        .ds-stat-icon.blue  { background: rgba(116,199,236,0.16);  color: var(--blue-dark); }
+        .ds-stat-val {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.6em;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1;
+        }
+        .ds-stat-label {
+            font-size: 0.7em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-family: 'IBM Plex Mono', monospace;
+            margin-top: 2px;
+        }
+        /* Card grid */
+        .ds-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 18px;
+        }
+        .ds-card {
+            background: rgba(255,255,255,0.82);
+            border: 1.5px solid var(--border-color);
+            border-radius: 18px;
+            padding: 24px 22px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 18px rgba(46,196,182,0.08);
+            animation: cardFadeIn 0.5s ease-out both;
+        }
+        .ds-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 16px; right: 16px;
+            height: 2.5px;
+            border-radius: 2px;
+            transition: opacity 0.3s;
+        }
+        .ds-card.c-aqua::before  { background: linear-gradient(90deg, transparent, var(--aqua-primary), transparent); }
+        .ds-card.c-pink::before  { background: linear-gradient(90deg, transparent, var(--pink-primary), transparent); }
+        .ds-card.c-blue::before  { background: linear-gradient(90deg, transparent, var(--blue-primary), transparent); }
+        .ds-card.c-gold::before  { background: linear-gradient(90deg, transparent, #f59e0b, transparent); }
+        .ds-card.c-teal::before  { background: linear-gradient(90deg, transparent, #0d9488, transparent); }
+        .ds-card.c-indigo::before { background: linear-gradient(90deg, transparent, #6366f1, transparent); }
+        .ds-card.c-rose::before  { background: linear-gradient(90deg, transparent, #f43f5e, transparent); }
+        .ds-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--border-hover);
+            box-shadow: 0 12px 36px rgba(46,196,182,0.16), 0 4px 12px rgba(247,168,196,0.10);
+        }
+        .ds-card-glyph {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4em;
+            margin-bottom: 14px;
+            transition: transform 0.3s;
+        }
+        .ds-card:hover .ds-card-glyph { transform: scale(1.12); }
+        .ds-card.c-aqua  .ds-card-glyph { background: rgba(46,196,182,0.14);  color: var(--aqua-dark); }
+        .ds-card.c-pink  .ds-card-glyph { background: rgba(247,168,196,0.18);  color: var(--pink-dark); }
+        .ds-card.c-blue  .ds-card-glyph { background: rgba(116,199,236,0.18);  color: var(--blue-dark); }
+        .ds-card.c-gold  .ds-card-glyph { background: rgba(245,158,11,0.12);   color: #b45309; }
+        .ds-card.c-teal  .ds-card-glyph { background: rgba(13,148,136,0.12);   color: #0d9488; }
+        .ds-card.c-indigo .ds-card-glyph { background: rgba(99,102,241,0.12);  color: #4338ca; }
+        .ds-card.c-rose  .ds-card-glyph { background: rgba(244,63,94,0.10);    color: #e11d48; }
+        .ds-card-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.05em;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+        .ds-card-desc {
+            font-size: 0.82em;
+            color: var(--text-muted);
+            line-height: 1.55;
+            margin-bottom: 16px;
+        }
+        .ds-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ds-card-badge {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.68em;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 20px;
+            border: 1px solid;
+        }
+        .ds-card.c-aqua  .ds-card-badge { background: rgba(46,196,182,0.09);  border-color: rgba(46,196,182,0.30);  color: var(--aqua-dark); }
+        .ds-card.c-pink  .ds-card-badge { background: rgba(247,168,196,0.10);  border-color: rgba(247,168,196,0.35);  color: var(--pink-dark); }
+        .ds-card.c-blue  .ds-card-badge { background: rgba(116,199,236,0.10);  border-color: rgba(116,199,236,0.35);  color: var(--blue-dark); }
+        .ds-card.c-gold  .ds-card-badge { background: rgba(245,158,11,0.08);   border-color: rgba(245,158,11,0.30);   color: #92400e; }
+        .ds-card.c-teal  .ds-card-badge { background: rgba(13,148,136,0.08);   border-color: rgba(13,148,136,0.30);   color: #0f766e; }
+        .ds-card.c-indigo .ds-card-badge { background: rgba(99,102,241,0.08);  border-color: rgba(99,102,241,0.30);   color: #4338ca; }
+        .ds-card.c-rose  .ds-card-badge { background: rgba(244,63,94,0.07);    border-color: rgba(244,63,94,0.28);    color: #be123c; }
+        .ds-card-arrow {
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8em;
+            transition: var(--transition-smooth);
+        }
+        .ds-card.c-aqua  .ds-card-arrow { background: rgba(46,196,182,0.10);  color: var(--aqua-dark); }
+        .ds-card.c-pink  .ds-card-arrow { background: rgba(247,168,196,0.14);  color: var(--pink-dark); }
+        .ds-card.c-blue  .ds-card-arrow { background: rgba(116,199,236,0.14);  color: var(--blue-dark); }
+        .ds-card.c-gold  .ds-card-arrow { background: rgba(245,158,11,0.10);   color: #b45309; }
+        .ds-card.c-teal  .ds-card-arrow { background: rgba(13,148,136,0.10);   color: #0d9488; }
+        .ds-card.c-indigo .ds-card-arrow { background: rgba(99,102,241,0.10); color: #4338ca; }
+        .ds-card.c-rose  .ds-card-arrow { background: rgba(244,63,94,0.08);   color: #e11d48; }
+        .ds-card:hover .ds-card-arrow { transform: translateX(4px); }
+        @media (max-width: 640px) {
+            .ds-stats-row { grid-template-columns: 1fr 1fr; }
+            .ds-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 400px) {
+            .ds-stats-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- ⚛️ React Script Execution -->
+    <script type="text/babel">
+        const { useState } = React;
+
+        // ============================================================
+        // 🎓 STUDENT ID = PASSWORD RULE
+        // Every student's password is their own Student ID number.
+        // Example: ID = 252X1A4502 → Password = 252X1A4502
+        // ============================================================
+
+        // --- STAGE COMPONENTS ---
+
+        // ─────────────────────────────────────────────────────────────────────
+        // QR LOGIN MODAL  (WhatsApp Web / Notion-style scan-to-sign-in)
+        // Uses existing server routes: /api/qr/session/create,
+        //   /api/qr/session/poll/:id,  Socket.io events: qr:join / qr:scanned
+        //   / qr:approved / qr:denied / qr:expired
+        // ─────────────────────────────────────────────────────────────────────
+        const QRLoginModal = ({ onApproved, onClose }) => {
+            const [qrStatus, setQrStatus]         = React.useState('loading');  // loading|ready|scanned|approved|denied|expired|error
+            const [sessionId, setSessionId]       = React.useState(null);
+            const [approveUrl, setApproveUrl]     = React.useState('');
+            const [targetNumber, setTargetNumber] = React.useState(null);
+            const [errMsg, setErrMsg]             = React.useState('');
+            const [countdown, setCountdown]       = React.useState(300);
+            const socketRef  = React.useRef(null);
+            const qrRef      = React.useRef(null);
+            const timerRef   = React.useRef(null);
+            const sessionRef = React.useRef(null); // keep sessionId accessible in closures
+
+            const SERVER_URL = (window.location.protocol === 'file:' || window.location.port !== '3000')
+                ? 'http://localhost:3000' : '';
+
+            // ── render QR whenever URL changes ──────────────────────────────
+            React.useEffect(() => {
+                if (!approveUrl || !qrRef.current) return;
+                qrRef.current.innerHTML = '';
+                try {
+                    new window.QRCode(qrRef.current, {
+                        text: approveUrl,
+                        width: 190, height: 190,
+                        colorDark: '#1a9b8e', colorLight: '#ffffff',
+                        correctLevel: window.QRCode ? window.QRCode.CorrectLevel.M : 1,
+                    });
+                } catch(e) {
+                    if (qrRef.current) qrRef.current.innerHTML =
+                        '<p style="color:#e05c7a;font-size:0.72em;padding:8px">QR library not loaded. Please ensure an internet connection.</p>';
+                }
+            }, [approveUrl]);
+
+            // ── create QR session ───────────────────────────────────────────
+            const createSession = React.useCallback(async () => {
+                // cleanup previous socket/timer
+                if (socketRef.current)  { socketRef.current.disconnect(); socketRef.current = null; }
+                if (timerRef.current)   clearInterval(timerRef.current);
+                setQrStatus('loading');
+                setTargetNumber(null);
+                setErrMsg('');
+                setCountdown(300);
+
+                try {
+                    const res  = await fetch(`${SERVER_URL}/api/qr/session/create`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ studentId: 'guest' })
+                    });
+                    const data = await res.json();
+                    if (!data.success) throw new Error(data.message || 'Failed to create session');
+
+                    setSessionId(data.sessionId);
+                    sessionRef.current = data.sessionId;
+                    setApproveUrl(data.approveUrl);
+                    setTargetNumber(data.targetNumber);
+                    setQrStatus('ready');
+                    setCountdown(data.expiresIn || 300);
+
+                    // countdown timer
+                    timerRef.current = setInterval(() => {
+                        setCountdown(p => {
+                            if (p <= 1) {
+                                clearInterval(timerRef.current);
+                                setQrStatus('expired');
+                                return 0;
+                            }
+                            return p - 1;
+                        });
+                    }, 1000);
+
+                    // ── Socket.io real-time events ─────────────────────────
+                    const socket = io(SERVER_URL || undefined);
+                    socketRef.current = socket;
+                    socket.on('connect', () => {
+                        socket.emit('qr:join', data.sessionId);
+                    });
+                    socket.on('qr:scanned',  () => setQrStatus('scanned'));
+                    socket.on('qr:approved', (payload) => {
+                        clearInterval(timerRef.current);
+                        setQrStatus('approved');
+                        setTimeout(() => onApproved(payload), 800);
+                    });
+                    socket.on('qr:denied',   () => {
+                        setQrStatus('denied');
+                        setTimeout(() => setQrStatus(prev => prev === 'denied' ? 'scanned' : prev), 2000);
+                    });
+                    socket.on('qr:expired',  () => {
+                        clearInterval(timerRef.current);
+                        setQrStatus('expired');
+                    });
+
+                } catch(err) {
+                    setQrStatus('error');
+                    const isNetworkErr = err.message === 'Failed to fetch' || err.message.includes('NetworkError') || err.message.includes('fetch');
+                    setErrMsg(isNetworkErr ? 'SERVER_OFFLINE' : (err.message || 'Cannot reach authentication server.'));
+                }
+            }, [SERVER_URL, onApproved]);
+
+            // ── init on mount, cleanup on unmount ───────────────────────────
+            React.useEffect(() => {
+                createSession();
+                return () => {
+                    if (socketRef.current) socketRef.current.disconnect();
+                    if (timerRef.current)  clearInterval(timerRef.current);
+                    // cancel the session on close
+                    if (sessionRef.current) {
+                        fetch(`${SERVER_URL}/api/qr/session/cancel/${sessionRef.current}`, { method: 'POST' }).catch(() => {});
+                    }
+                };
+            }, []);
+
+            // ── helpers ────────────────────────────────────────────────────
+            const fmtTime = (s) => `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+
+            const statusConfig = {
+                loading:  { icon: 'fa-spinner fa-spin', color: 'var(--aqua-primary)',  text: 'Generating QR code…' },
+                ready:    { icon: 'fa-qrcode',          color: 'var(--aqua-primary)',  text: 'Waiting for scan…' },
+                scanned:  { icon: 'fa-mobile-alt',      color: 'var(--blue-dark)',     text: 'Phone detected — select the number' },
+                approved: { icon: 'fa-check-circle',    color: '#22c55e',             text: 'Approved! Signing you in…' },
+                denied:   { icon: 'fa-times-circle',    color: '#f87171',             text: 'Wrong number — retry on phone' },
+                expired:  { icon: 'fa-hourglass-end',   color: '#fbbf24',             text: 'QR expired' },
+                error:    { icon: 'fa-exclamation-triangle', color: '#f87171',        text: errMsg || 'Error' },
+            };
+            const sc = statusConfig[qrStatus] || statusConfig.ready;
+
+            return (
+                // ── Backdrop ────────────────────────────────────────────────
+                <div
+                    id="qr-login-backdrop"
+                    onClick={(e) => e.target.id === 'qr-login-backdrop' && onClose()}
+                    style={{
+                        position:'fixed', inset:0, zIndex:1000,
+                        background:'rgba(10,20,30,0.72)',
+                        backdropFilter:'blur(8px)',
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                        padding:'16px',
+                        animation:'qrFadeIn 0.25s ease',
+                    }}
+                >
+                    {/* ── Modal card ─────────────────────────────────────── */}
+                    <div style={{
+                        background:'rgba(255,255,255,0.98)',
+                        borderRadius:'24px',
+                        width:'100%', maxWidth:'420px',
+                        padding:'32px 28px 28px',
+                        boxShadow:'0 32px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(46,196,182,0.2)',
+                        position:'relative',
+                        animation:'qrSlideUp 0.3s cubic-bezier(0.34,1.2,0.64,1)',
+                        overflow:'hidden',
+                    }}>
+                        {/* gradient top bar */}
+                        <div style={{ position:'absolute', top:0, left:'20px', right:'20px', height:'3px', background:'linear-gradient(90deg,transparent,var(--aqua-primary),var(--pink-primary),transparent)', borderRadius:'3px' }} />
+
+                        {/* close button */}
+                        <button
+                            id="qr-modal-close"
+                            onClick={onClose}
+                            style={{ position:'absolute', top:'16px', right:'16px', background:'rgba(46,196,182,0.08)', border:'1px solid rgba(46,196,182,0.2)', borderRadius:'50%', width:'32px', height:'32px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'var(--text-secondary)', fontSize:'0.9em', transition:'all 0.2s' }}
+                            title="Close"
+                        >
+                            <i className="fas fa-times" />
+                        </button>
+
+                        {/* Header */}
+                        <div style={{ textAlign:'center', marginBottom:'20px' }}>
+                            <div style={{ width:'52px', height:'52px', background:'linear-gradient(135deg,rgba(46,196,182,0.14),rgba(116,199,236,0.14))', border:'1.5px solid var(--border-color)', borderRadius:'14px', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px', fontSize:'1.5em', color:'var(--aqua-dark)' }}>
+                                <i className="fas fa-qrcode" />
+                            </div>
+                            <div style={{ fontFamily:'Space Grotesk,sans-serif', fontSize:'1.2em', fontWeight:700, color:'var(--text-main)' }}>QR Sign-In</div>
+                            <div style={{ fontFamily:'IBM Plex Mono,monospace', fontSize:'0.65em', color:'var(--aqua-dark)', letterSpacing:'0.15em', textTransform:'uppercase', marginTop:'4px' }}>Scan with your phone to sign in instantly</div>
+                        </div>
+
+                        {/* Status pill */}
+                        <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'7px', padding:'7px 14px', background:`${sc.color}14`, border:`1px solid ${sc.color}40`, borderRadius:'20px', marginBottom:'20px', fontSize:'0.78em', color:sc.color, fontFamily:'IBM Plex Mono,monospace', transition:'all 0.4s' }}>
+                            <i className={`fas ${sc.icon}`} />
+                            {sc.text}
+                        </div>
+
+                        {/* QR container */}
+                        {(qrStatus === 'ready' || qrStatus === 'scanned') && (
+                            <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'16px', marginBottom:'20px' }}>
+                                {/* QR frame */}
+                                <div style={{ position:'relative', padding:'12px', background:'#fff', borderRadius:'16px', border:`2px solid ${qrStatus==='scanned' ? 'var(--blue-primary)' : 'var(--border-color)'}`, boxShadow:'0 4px 20px rgba(46,196,182,0.12)', transition:'border-color 0.3s' }}>
+                                    <div ref={qrRef} />
+                                    {/* scan overlay when scanned */}
+                                    {qrStatus === 'scanned' && (
+                                        <div style={{ position:'absolute', inset:0, borderRadius:'14px', background:'rgba(116,199,236,0.08)', display:'flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(1px)' }}>
+                                            <div style={{ background:'rgba(255,255,255,0.92)', borderRadius:'10px', padding:'8px 12px', fontSize:'0.75em', color:'var(--blue-dark)', fontFamily:'IBM Plex Mono,monospace', display:'flex', alignItems:'center', gap:'6px' }}>
+                                                <i className="fas fa-mobile-alt" /> Phone connected
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Number challenge display */}
+                                {targetNumber && (
+                                    <div style={{ textAlign:'center' }}>
+                                        <div style={{ fontSize:'0.68em', color:'var(--aqua-dark)', textTransform:'uppercase', letterSpacing:'0.14em', fontFamily:'IBM Plex Mono,monospace', marginBottom:'6px', display:'flex', alignItems:'center', justifyContent:'center', gap:'6px' }}>
+                                            <i className="fas fa-desktop" /> Tap this number on your phone
+                                        </div>
+                                        <div style={{ fontSize:'3.2em', fontWeight:800, fontFamily:'Space Grotesk,sans-serif', color:'var(--aqua-dark)', background:'linear-gradient(135deg,rgba(46,196,182,0.10),rgba(116,199,236,0.10))', padding:'10px 28px', borderRadius:'14px', border:'2px solid var(--border-color)', letterSpacing:'0.04em', textShadow:'0 0 20px rgba(46,196,182,0.25)', display:'inline-block' }}>
+                                            {targetNumber}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Countdown + timer bar */}
+                                <div style={{ width:'100%' }}>
+                                    <div style={{ display:'flex', justifyContent:'space-between', fontSize:'0.68em', color:'var(--text-muted)', fontFamily:'IBM Plex Mono,monospace', marginBottom:'4px' }}>
+                                        <span><i className="fas fa-clock" /> Expires in</span>
+                                        <span style={{ color: countdown <= 30 ? '#fbbf24' : 'var(--aqua-primary)', fontWeight:700 }}>{fmtTime(countdown)}</span>
+                                    </div>
+                                    <div style={{ height:'3px', background:'rgba(46,196,182,0.12)', borderRadius:'3px', overflow:'hidden' }}>
+                                        <div style={{ height:'100%', width:`${(countdown/300)*100}%`, background: countdown<=30 ? '#fbbf24' : 'var(--aqua-primary)', borderRadius:'3px', transition:'width 1s linear,background 0.3s' }} />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Approved animation */}
+                        {qrStatus === 'approved' && (
+                            <div style={{ textAlign:'center', padding:'20px 0', marginBottom:'20px' }}>
+                                <div style={{ width:'76px', height:'76px', background:'linear-gradient(135deg,#22c55e,#16a34a)', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px', fontSize:'2em', color:'white', boxShadow:'0 8px 28px rgba(34,197,94,0.3)', animation:'qrPopIn 0.5s cubic-bezier(0.34,1.56,0.64,1)' }}>
+                                    <i className="fas fa-check" />
+                                </div>
+                                <div style={{ fontFamily:'Space Grotesk,sans-serif', fontWeight:700, fontSize:'1.1em', color:'#16a34a', marginBottom:'4px' }}>Verified! Signing in…</div>
+                                <div style={{ fontSize:'0.78em', color:'var(--text-muted)' }}>You will be redirected automatically.</div>
+                            </div>
+                        )}
+
+                        {/* Expired / Error state */}
+                        {(qrStatus === 'expired' || qrStatus === 'error') && (
+                            <div style={{ marginBottom:'20px' }}>
+
+                                {/* SERVER OFFLINE — special helpful panel */}
+                                {qrStatus === 'error' && errMsg === 'SERVER_OFFLINE' ? (
+                                    <div style={{ background:'rgba(251,191,36,0.06)', border:'1.5px solid rgba(251,191,36,0.3)', borderRadius:'14px', padding:'18px 16px', textAlign:'left' }}>
+                                        <div style={{ display:'flex', alignItems:'center', gap:'9px', marginBottom:'12px' }}>
+                                            <div style={{ width:'36px', height:'36px', background:'rgba(251,191,36,0.12)', border:'1px solid rgba(251,191,36,0.3)', borderRadius:'10px', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, color:'#d97706', fontSize:'1.1em' }}>
+                                                <i className="fas fa-server" />
+                                            </div>
+                                            <div>
+                                                <div style={{ fontFamily:'Space Grotesk,sans-serif', fontWeight:700, fontSize:'0.9em', color:'#92400e' }}>Server Not Running</div>
+                                                <div style={{ fontSize:'0.72em', color:'#b45309', marginTop:'2px' }}>QR login requires the backend server</div>
+                                            </div>
+                                        </div>
+                                        <div style={{ fontSize:'0.75em', color:'#78350f', lineHeight:1.8, marginBottom:'12px' }}>
+                                            Open a terminal in your project folder and run:
+                                        </div>
+                                        <div style={{ background:'#1a2e38', borderRadius:'8px', padding:'10px 14px', fontFamily:'IBM Plex Mono,monospace', fontSize:'0.8em', color:'#7eecd8', letterSpacing:'0.04em', marginBottom:'14px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px' }}>
+                                            <span>node server.js</span>
+                                            <button
+                                                onClick={() => { try { navigator.clipboard.writeText('node server.js'); } catch(e){} }}
+                                                style={{ background:'rgba(126,236,216,0.15)', border:'1px solid rgba(126,236,216,0.25)', borderRadius:'6px', color:'#7eecd8', fontSize:'0.85em', padding:'3px 8px', cursor:'pointer' }}
+                                                title="Copy command"
+                                            >
+                                                <i className="fas fa-copy" />
+                                            </button>
+                                        </div>
+                                        <div style={{ fontSize:'0.72em', color:'#92400e', background:'rgba(251,191,36,0.08)', border:'1px solid rgba(251,191,36,0.2)', borderRadius:'7px', padding:'7px 10px', display:'flex', alignItems:'flex-start', gap:'7px' }}>
+                                            <i className="fas fa-lightbulb" style={{ marginTop:'2px', flexShrink:0 }} />
+                                            <span>After starting the server, open <strong>http://localhost:3000</strong> in your browser instead of opening the file directly.</span>
+                                        </div>
+                                        <button
+                                            id="qr-refresh-btn"
+                                            onClick={createSession}
+                                            style={{ marginTop:'14px', width:'100%', padding:'9px 16px', background:'linear-gradient(135deg,var(--aqua-primary),var(--blue-dark))', border:'none', borderRadius:'10px', color:'white', cursor:'pointer', fontSize:'0.82em', fontWeight:600, display:'flex', alignItems:'center', justifyContent:'center', gap:'7px' }}
+                                        >
+                                            <i className="fas fa-rotate-right" /> Retry Connection
+                                        </button>
+                                    </div>
+                                ) : (
+                                    /* Generic expired / other error */
+                                    <div style={{ textAlign:'center' }}>
+                                        <div style={{ fontSize:'0.83em', color: qrStatus==='expired' ? '#fbbf24' : '#f87171', marginBottom:'14px' }}>
+                                            {qrStatus === 'expired' ? 'QR code expired. Generate a new one.' : errMsg}
+                                        </div>
+                                        <button
+                                            id="qr-refresh-btn"
+                                            onClick={createSession}
+                                            style={{ padding:'9px 20px', background:'linear-gradient(135deg,var(--aqua-primary),var(--blue-dark))', border:'none', borderRadius:'10px', color:'white', cursor:'pointer', fontSize:'0.83em', fontWeight:600, display:'inline-flex', alignItems:'center', gap:'7px' }}
+                                        >
+                                            <i className="fas fa-rotate-right" /> Generate New QR
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Loading state */}
+                        {qrStatus === 'loading' && (
+                            <div style={{ textAlign:'center', padding:'40px 0 30px', marginBottom:'10px' }}>
+                                <i className="fas fa-spinner fa-spin" style={{ fontSize:'2.5em', color:'var(--aqua-primary)' }} />
+                            </div>
+                        )}
+
+                        {/* How-to steps */}
+                        {(qrStatus === 'ready' || qrStatus === 'scanned') && (
+                            <div style={{ background:'linear-gradient(135deg,rgba(46,196,182,0.05),rgba(116,199,236,0.05))', border:'1px solid var(--border-color)', borderRadius:'10px', padding:'12px 14px', fontSize:'0.74em', color:'var(--text-secondary)', lineHeight:1.7 }}>
+                                <div style={{ display:'flex', alignItems:'flex-start', gap:'8px', marginBottom:'4px' }}><span style={{ color:'var(--aqua-primary)', fontWeight:700, minWidth:'18px' }}>1.</span> Open your phone's camera and scan the QR code above.</div>
+                                <div style={{ display:'flex', alignItems:'flex-start', gap:'8px', marginBottom:'4px' }}><span style={{ color:'var(--aqua-primary)', fontWeight:700, minWidth:'18px' }}>2.</span> You'll see three numbers on your phone.</div>
+                                <div style={{ display:'flex', alignItems:'flex-start', gap:'8px' }}><span style={{ color:'var(--aqua-primary)', fontWeight:700, minWidth:'18px' }}>3.</span> Tap the number that <strong>matches</strong> the one shown above.</div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // 1. LOGIN STAGE
+        const MAX_ATTEMPTS = 3;
+        const LOCKOUT_SECONDS = 30;
+        const IDLE_TIMEOUT_SECONDS = 90;
+
+        const LoginScreen = ({ onNext }) => {
+            const [showQRModal, setShowQRModal] = React.useState(false);
+            const [idNumber, setIdNumber] = useState(() => localStorage.getItem('hec_remember_id') || '');
+            const [password, setPassword] = useState('');
+            const [errors, setErrors] = useState({});
+            const [isLoading, setIsLoading] = useState(false);
+
+            // 🔒 Security states
+            const [showPassword, setShowPassword] = useState(false);
+            const [capsLockOn, setCapsLockOn] = useState(false);
+            const [failedAttempts, setFailedAttempts] = useState(0);
+            const [lockoutTimer, setLockoutTimer] = useState(0);
+            const [isLocked, setIsLocked] = useState(false);
+            const [robotChecked, setRobotChecked] = useState(false);
+            const [rememberMe, setRememberMe] = useState(!!localStorage.getItem('hec_remember_id'));
+            const [idleTimer, setIdleTimer] = useState(IDLE_TIMEOUT_SECONDS);
+            const [sessionExpired, setSessionExpired] = useState(false);
+            const idleRef = React.useRef(null);
+            const lockRef = React.useRef(null);
+
+            // ⏱️ Lockout countdown
+            React.useEffect(() => {
+                if (isLocked && lockoutTimer > 0) {
+                    lockRef.current = setInterval(() => {
+                        setLockoutTimer(prev => {
+                            if (prev <= 1) {
+                                clearInterval(lockRef.current);
+                                setIsLocked(false);
+                                setFailedAttempts(0);
+                                return 0;
+                            }
+                            return prev - 1;
+                        });
+                    }, 1000);
+                }
+                return () => clearInterval(lockRef.current);
+            }, [isLocked]);
+
+            // ⏳ Idle session expiry
+            const resetIdle = React.useCallback(() => {
+                setIdleTimer(IDLE_TIMEOUT_SECONDS);
+                setSessionExpired(false);
+            }, []);
+
+            React.useEffect(() => {
+                const tick = setInterval(() => {
+                    setIdleTimer(prev => {
+                        if (prev <= 1) {
+                            setSessionExpired(true);
+                            return 0;
+                        }
+                        return prev - 1;
+                    });
+                }, 1000);
+                const events = ['mousemove', 'keydown', 'mousedown', 'touchstart'];
+                events.forEach(ev => window.addEventListener(ev, resetIdle));
+                return () => {
+                    clearInterval(tick);
+                    events.forEach(ev => window.removeEventListener(ev, resetIdle));
+                };
+            }, [resetIdle]);
+
+            // 🔐 Caps Lock detection
+            const handleKeyPress = (e) => {
+                setCapsLockOn(e.getModifierState && e.getModifierState('CapsLock'));
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (isLocked) return;
+                if (sessionExpired) return;
+
+                const newErrors = {};
+                const trimmedId = idNumber.trim();
+
+                // Anti-bot check
+                if (!robotChecked) {
+                    newErrors.robot = 'Please confirm you are not a robot.';
+                    setErrors(newErrors);
+                    return;
+                }
+
+                // Format validation
+                const idRegex = /^[a-zA-Z0-9]{4,15}$/;
+                if (!trimmedId) {
+                    newErrors.idNumber = 'ID Number is required';
+                } else if (!idRegex.test(trimmedId)) {
+                    newErrors.idNumber = 'ID must be alphanumeric and 4–15 characters';
+                }
+
+                if (!password) {
+                    newErrors.password = 'Password is required';
+                } else if (password.length < 4) {
+                    newErrors.password = 'Password must be at least 4 characters';
+                }
+
+                if (Object.keys(newErrors).length > 0) {
+                    setErrors(newErrors);
+                    return;
+                }
+
+                // Credential check: password must match student ID
+                if (password.trim().toUpperCase() !== trimmedId.toUpperCase()) {
+                    const newCount = failedAttempts + 1;
+                    setFailedAttempts(newCount);
+                    if (newCount >= MAX_ATTEMPTS) {
+                        setIsLocked(true);
+                        setLockoutTimer(LOCKOUT_SECONDS);
+                        setErrors({ password: `❌ Too many failed attempts. Account locked for ${LOCKOUT_SECONDS}s.` });
+                    } else {
+                        setErrors({ password: `❌ Incorrect password. Your password is your Student ID. (${MAX_ATTEMPTS - newCount} attempt${MAX_ATTEMPTS - newCount !== 1 ? 's' : ''} left)` });
+                    }
+                    return;
+                }
+
+                // Remember me
+                if (rememberMe) {
+                    localStorage.setItem('hec_remember_id', trimmedId.toUpperCase());
+                } else {
+                    localStorage.removeItem('hec_remember_id');
+                }
+
+                setErrors({});
+                setIsLoading(true);
+                setTimeout(() => {
+                    setIsLoading(false);
+                    onNext(trimmedId.toUpperCase());
+                }, 1200);
+            };
+
+            return (
+                <div className="portal-card" style={{ overflow: 'hidden' }}>
+                    <div className="laminate-overlay"></div>
+                    <div className="badge-slot"></div>
+
+                    {/* 🛡️ Secure Connection Badge */}
+                    <div style={{ position: 'absolute', top: '14px', right: '16px', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.68em', color: '#4ade80', zIndex: 30, background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.2)', padding: '3px 8px', borderRadius: '20px' }}>
+                        <i className="fas fa-lock"></i> Secure Connection
+                    </div>
+
+                    {/* ⏳ Idle session warning bar */}
+                    {idleTimer <= 20 && !sessionExpired && (
+                        <div style={{ position: 'relative', zIndex: 20, marginBottom: '12px', padding: '8px 12px', background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.25)', borderRadius: '7px', fontSize: '0.75em', color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <i className="fas fa-hourglass-half"></i>
+                            Session expires in <strong>{idleTimer}s</strong> due to inactivity. Move your mouse to reset.
+                        </div>
+                    )}
+                    {sessionExpired && (
+                        <div style={{ position: 'relative', zIndex: 20, marginBottom: '12px', padding: '8px 12px', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.25)', borderRadius: '7px', fontSize: '0.75em', color: '#f87171', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <i className="fas fa-exclamation-triangle"></i>
+                            Session expired due to inactivity.&nbsp;
+                            <span style={{ cursor: 'pointer', textDecoration: 'underline' }} onClick={resetIdle}>Click to resume</span>
+                        </div>
+                    )}
+
+                    <div className="card-header" style={{ marginBottom: '20px', position: 'relative', zIndex: 20 }}>
+                        <div className="badge-crest"><i className="fas fa-graduation-cap"></i></div>
+                        <h2 className="card-title" style={{ fontSize: '1.4em', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Hindu Engineering College</h2>
+                        <div className="badge-title-sub">Student Identification</div>
+                    </div>
+
+                    {/* 🔒 Lockout Banner */}
+                    {isLocked && (
+                        <div style={{ position: 'relative', zIndex: 20, marginBottom: '14px', padding: '10px 14px', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '8px', fontSize: '0.8em', color: '#f87171', textAlign: 'center' }}>
+                            <i className="fas fa-ban" style={{ marginRight: '6px' }}></i>
+                            Account locked. Try again in <strong>{lockoutTimer}s</strong>
+                            <div style={{ marginTop: '6px', height: '4px', background: 'rgba(248,113,113,0.15)', borderRadius: '4px', overflow: 'hidden' }}>
+                                <div style={{ height: '100%', background: '#f87171', borderRadius: '4px', width: `${(lockoutTimer / LOCKOUT_SECONDS) * 100}%`, transition: 'width 1s linear' }}></div>
+                            </div>
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} noValidate>
+                        {/* ID Number Field */}
+                        <div className="form-group">
+                            <label className="form-label" htmlFor="idNumber">ID Number</label>
+                            <div className="form-input-wrapper">
+                                <i className="fas fa-id-badge form-input-icon"></i>
+                                <input
+                                    type="text"
+                                    id="idNumber"
+                                    className="form-input"
+                                    placeholder="Enter ID (e.g. 252X1A4502)"
+                                    value={idNumber}
+                                    disabled={isLocked || sessionExpired}
+                                    onChange={(e) => {
+                                        setIdNumber(e.target.value);
+                                        if (errors.idNumber) setErrors(prev => ({ ...prev, idNumber: null }));
+                                    }}
+                                    maxLength={15}
+                                    autoComplete="username"
+                                />
+                            </div>
+                            {errors.idNumber && (
+                                <div className="inline-error"><i className="fas fa-exclamation-circle"></i> {errors.idNumber}</div>
+                            )}
+                            {idNumber && !errors.idNumber && (
+                                <div className="email-preview-box">
+                                    <i className="fas fa-envelope"></i>
+                                    <span>Live Email: <span className="email-preview-text">{idNumber.trim()}@hinduengg.com</span></span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Password Field */}
+                        <div className="form-group">
+                            <label className="form-label" htmlFor="password">
+                                Password
+                                <span style={{ marginLeft: '8px', fontSize: '0.72em', color: 'var(--brass-primary)', fontWeight: 400 }}>
+                                    <i className="fas fa-info-circle"></i> Your password is your Student ID
+                                </span>
+                            </label>
+                            <div className="form-input-wrapper" style={{ position: 'relative' }}>
+                                <i className="fas fa-lock form-input-icon"></i>
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    id="password"
+                                    className="form-input"
+                                    placeholder="Enter your Student ID as password"
+                                    value={password}
+                                    disabled={isLocked || sessionExpired}
+                                    onKeyUp={handleKeyPress}
+                                    onKeyDown={handleKeyPress}
+                                    onPaste={(e) => { e.preventDefault(); setErrors(prev => ({ ...prev, password: '⚠️ Pasting is disabled for security. Please type your password.' })); }}
+                                    onChange={(e) => {
+                                        setPassword(e.target.value);
+                                        if (errors.password) setErrors(prev => ({ ...prev, password: null }));
+                                    }}
+                                    style={{ paddingRight: '44px' }}
+                                    autoComplete="current-password"
+                                />
+                                {/* 👁️ Show/Hide Toggle */}
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(p => !p)}
+                                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '0.9em', zIndex: 5, padding: '4px' }}
+                                    tabIndex={-1}
+                                    title={showPassword ? 'Hide password' : 'Show password'}
+                                >
+                                    <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                </button>
+                            </div>
+
+                            {/* ⚠️ Caps Lock Warning */}
+                            {capsLockOn && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '5px', fontSize: '0.75em', color: '#fbbf24' }}>
+                                    <i className="fas fa-exclamation-triangle"></i> Caps Lock is ON — this may affect your password
+                                </div>
+                            )}
+
+                            {errors.password && (
+                                <div className="inline-error"><i className="fas fa-exclamation-circle"></i> {errors.password}</div>
+                            )}
+                        </div>
+
+                        {/* ✅ Remember Me + 🤖 Anti-bot row */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', position: 'relative', zIndex: 20, flexWrap: 'wrap', gap: '8px' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '7px', cursor: 'pointer', fontSize: '0.78em', color: 'var(--text-secondary)' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={rememberMe}
+                                    onChange={e => setRememberMe(e.target.checked)}
+                                    style={{ accentColor: 'var(--brass-primary)', width: '14px', height: '14px' }}
+                                />
+                                Remember my ID
+                            </label>
+
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '7px', cursor: 'pointer', fontSize: '0.78em', color: robotChecked ? '#4ade80' : 'var(--text-secondary)', border: `1px solid ${robotChecked ? 'rgba(74,222,128,0.3)' : 'var(--border-color)'}`, padding: '5px 10px', borderRadius: '6px', background: robotChecked ? 'rgba(74,222,128,0.06)' : 'rgba(255,255,255,0.02)', transition: 'all 0.2s' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={robotChecked}
+                                    onChange={e => { setRobotChecked(e.target.checked); if (errors.robot) setErrors(prev => ({...prev, robot: null})); }}
+                                    style={{ accentColor: '#4ade80', width: '14px', height: '14px' }}
+                                />
+                                <i className={`fas ${robotChecked ? 'fa-check-circle' : 'fa-robot'}`}></i>
+                                I am not a robot
+                            </label>
+                        </div>
+
+                        {errors.robot && (
+                            <div className="inline-error" style={{ marginBottom: '10px' }}><i className="fas fa-exclamation-circle"></i> {errors.robot}</div>
+                        )}
+
+                        <button
+                            type="submit"
+                            className="portal-btn portal-btn-primary"
+                            style={{ marginTop: '4px', position: 'relative', zIndex: 20, opacity: (isLocked || sessionExpired) ? 0.5 : 1, cursor: (isLocked || sessionExpired) ? 'not-allowed' : 'pointer' }}
+                            disabled={isLoading || isLocked || sessionExpired}
+                        >
+                            {isLoading ? (
+                                <><i className="fas fa-spinner fa-spin" style={{ marginRight: '8px' }}></i> Verifying Credentials...</>
+                            ) : isLocked ? (
+                                <><i className="fas fa-ban" style={{ marginRight: '8px' }}></i> Locked — {lockoutTimer}s</>
+                            ) : (
+                                <>Authenticate Access <i className="fas fa-key" style={{ marginLeft: '6px' }}></i></>
+                            )}
+                        </button>
+
+                        {/* ── QR Login divider ── */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '14px 0 0', position: 'relative', zIndex: 20 }}>
+                            <div style={{ flex: 1, height: '1px', background: 'var(--border-color)' }} />
+                            <span style={{ fontSize: '0.72em', color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono, monospace', textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>or sign in with</span>
+                            <div style={{ flex: 1, height: '1px', background: 'var(--border-color)' }} />
+                        </div>
+
+                        {/* ── QR Login Button ── */}
+                        <button
+                            id="qr-login-btn"
+                            type="button"
+                            onClick={() => setShowQRModal(true)}
+                            disabled={isLocked || sessionExpired}
+                            style={{
+                                width: '100%', marginTop: '10px',
+                                padding: '12px 16px',
+                                background: 'linear-gradient(135deg, rgba(46,196,182,0.08), rgba(116,199,236,0.08))',
+                                border: '1.5px solid var(--border-color)',
+                                borderRadius: '10px',
+                                color: 'var(--aqua-dark)',
+                                fontSize: '0.88em', fontWeight: 600,
+                                fontFamily: 'Space Grotesk, sans-serif',
+                                cursor: (isLocked || sessionExpired) ? 'not-allowed' : 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px',
+                                transition: 'all 0.25s',
+                                position: 'relative', zIndex: 20,
+                                opacity: (isLocked || sessionExpired) ? 0.5 : 1,
+                            }}
+                            onMouseEnter={e => { if (!isLocked && !sessionExpired) { e.currentTarget.style.background='linear-gradient(135deg,rgba(46,196,182,0.16),rgba(116,199,236,0.16))'; e.currentTarget.style.borderColor='var(--aqua-primary)'; e.currentTarget.style.boxShadow='0 4px 16px rgba(46,196,182,0.15)'; } }}
+                            onMouseLeave={e => { e.currentTarget.style.background='linear-gradient(135deg,rgba(46,196,182,0.08),rgba(116,199,236,0.08))'; e.currentTarget.style.borderColor='var(--border-color)'; e.currentTarget.style.boxShadow='none'; }}
+                        >
+                            <i className="fas fa-qrcode" style={{ fontSize: '1.1em' }} />
+                            Scan QR Code to Sign In
+                            <span style={{ marginLeft: 'auto', fontSize: '0.68em', background: 'rgba(46,196,182,0.12)', border: '1px solid rgba(46,196,182,0.25)', padding: '2px 7px', borderRadius: '20px', color: 'var(--aqua-primary)', fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.04em' }}>Instant</span>
+                        </button>
+
+                        {/* Attempt indicator dots */}
+                        {failedAttempts > 0 && !isLocked && (
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '10px' }}>
+                                {Array.from({ length: MAX_ATTEMPTS }).map((_, i) => (
+                                    <div key={i} style={{ width: '8px', height: '8px', borderRadius: '50%', background: i < failedAttempts ? '#f87171' : 'var(--border-color)', transition: 'background 0.3s' }}></div>
+                                ))}
+                            </div>
+                        )}
+                    </form>
+
+                    {/* QR Login Modal — rendered inside the card's stacking context so it overlays everything */}
+                    {showQRModal && (
+                        <QRLoginModal
+                            onApproved={(payload) => {
+                                setShowQRModal(false);
+                                onNext('QR_AUTH_' + Date.now());
+                            }}
+                            onClose={() => setShowQRModal(false)}
+                        />
+                    )}
+                </div>
+            );
+        };
+
+        // 2. NUMBER-MATCHING AUTHENTICATION STAGE (CROSS-DEVICE SOCKET.IO WITH OFFLINE SIMULATION FALLBACK)
+        const OTPScreen = ({ studentId, onNext, onPrev }) => {
+            const [targetNumber, setTargetNumber] = useState(0);
+            const [options, setOptions] = useState([]);
+            const [sessionId, setSessionId] = useState('');
+            const [approveUrl, setApproveUrl] = useState('');
+            const [error, setError] = useState('');
+            const [timer, setTimer] = useState(30);
+            const [attempts, setAttempts] = useState(0);
+            const [socketConnected, setSocketConnected] = useState(false);
+            const [isOfflineMode, setIsOfflineMode] = useState(false);
+            const [qrUrl, setQrUrl] = useState('');
+
+            // Fallback endpoints for cross-origin access and double-clicked file:// systems
+            const SERVER_URL = (window.location.protocol === 'file:' || window.location.port !== '3000') ? 'http://localhost:3000' : '';
+            const appOrigin = window.location.protocol === 'file:' ? 'http://localhost:3000' : window.location.origin;
+
+            const socketRef = React.useRef(null);
+            const qrRef = React.useRef(null);
+
+            // Render QR code using qrcode.js whenever qrUrl changes
+            React.useEffect(() => {
+                if (!qrUrl || !qrRef.current) return;
+                qrRef.current.innerHTML = '';
+                try {
+                    new window.QRCode(qrRef.current, {
+                        text: qrUrl,
+                        width: 148,
+                        height: 148,
+                        colorDark: '#1a9b8e',
+                        colorLight: '#ffffff',
+                        correctLevel: window.QRCode ? window.QRCode.CorrectLevel.M : 1,
+                    });
+                } catch(e) {
+                    qrRef.current.innerHTML = '<p style="color:#e05c7a;font-size:0.75em">QR library not loaded. Ensure internet connection.</p>';
+                }
+            }, [qrUrl]);
+
+            // Generate numbers locally (for Offline Mode fallback)
+            const generateNumbersLocally = () => {
+                const target = Math.floor(Math.random() * 90) + 10;
+                let decoy1 = Math.floor(Math.random() * 90) + 10;
+                while (decoy1 === target) { decoy1 = Math.floor(Math.random() * 90) + 10; }
+                let decoy2 = Math.floor(Math.random() * 90) + 10;
+                while (decoy2 === target || decoy2 === decoy1) { decoy2 = Math.floor(Math.random() * 90) + 10; }
+                const rawOptions = [target, decoy1, decoy2];
+                const shuffled = rawOptions.sort(() => Math.random() - 0.5);
+                setTargetNumber(target);
+                setOptions(shuffled);
+                setTimer(30);
+            };
+
+            const initMfa = async () => {
+                // Clean up any existing socket before reconnecting
+                if (socketRef.current) {
+                    socketRef.current.disconnect();
+                    socketRef.current = null;
+                }
+
+                try {
+                    const res = await fetch(`${SERVER_URL}/api/mfa/init`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ studentId })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        setSessionId(data.sessionId);
+                        setTargetNumber(data.targetNumber);
+                        setApproveUrl(data.approveUrl);
+                        setQrUrl(data.approveUrl); // Set QR URL for live mode
+                        setIsOfflineMode(false);
+                        
+                        // Initialize Socket Connection
+                        const socket = io(SERVER_URL || undefined);
+                        socketRef.current = socket;
+                        
+                        socket.on('connect', () => {
+                            setSocketConnected(true);
+                            socket.emit('register-desktop', data.sessionId);
+                        });
+
+                        socket.on('approved', () => {
+                            onNext(); // Move to workspace selection screen!
+                        });
+
+                        socket.on('denied', (payload) => {
+                            setAttempts(payload.attempts);
+                            setTargetNumber(payload.targetNumber);
+                            setQrUrl(payload.approveUrl || `${appOrigin}/approve/${data.sessionId}`);
+                            setError("Numbers don't match — approval denied. Retrying...");
+                            setTimer(30);
+                        });
+
+                        socket.on('disconnect', () => {
+                            setSocketConnected(false);
+                        });
+                    } else {
+                        throw new Error('Init failed');
+                    }
+                } catch (err) {
+                    // FALLBACK TO OFFLINE CLIENT-SIDE SIMULATION
+                    setIsOfflineMode(true);
+                    const sid = 'offline_sim_' + Math.random().toString(36).substr(2,6);
+                    setSessionId(sid);
+                    const localUrl = `${appOrigin}/approve/${sid}`;
+                    setQrUrl(localUrl); // Generate QR even in offline mode
+                    generateNumbersLocally();
+                }
+            };
+
+            // Connect and initialize MFA request
+            React.useEffect(() => {
+                initMfa();
+                return () => {
+                    if (socketRef.current) {
+                        socketRef.current.disconnect();
+                    }
+                };
+            }, [studentId]);
+
+            // Expiry countdown timer
+            React.useEffect(() => {
+                let interval = null;
+                if (timer > 0 && sessionId) {
+                    interval = setInterval(() => {
+                        setTimer((prev) => prev - 1);
+                    }, 1000);
+                } else if (timer === 0 && sessionId) {
+                    if (isOfflineMode) {
+                        setError('Verification request expired. New numbers generated.');
+                        generateNumbersLocally();
+                    } else {
+                        // Call backend to regenerate a new security key
+                        const regenerate = async () => {
+                            try {
+                                const res = await fetch(`${SERVER_URL}/api/mfa/regenerate/${sessionId}`, { method: 'POST' });
+                                const data = await res.json();
+                                if (data.success) {
+                                    setTargetNumber(data.targetNumber);
+                                    setError('Verification request expired. New code generated.');
+                                    setTimer(30);
+                                }
+                            } catch (err) {
+                                generateNumbersLocally();
+                            }
+                        };
+                        regenerate();
+                    }
+                }
+                return () => clearInterval(interval);
+            }, [timer, sessionId, isOfflineMode]);
+
+            // Handle local click (for Offline Mode fallback)
+            const handleLocalOptionClick = (selectedNum) => {
+                if (selectedNum === targetNumber) {
+                    setError('');
+                    onNext();
+                } else {
+                    setAttempts(prev => prev + 1);
+                    setError("Numbers don't match — approval denied. Retrying...");
+                    generateNumbersLocally();
+                }
+            };
+
+            return (
+                <div className="portal-card" style={{ maxWidth: '820px', width: '95%', overflow: 'hidden' }}>
+                    <div className="laminate-overlay"></div>
+                    <div className="badge-slot"></div>
+
+                    {/* Header */}
+                    <div className="card-header" style={{ marginBottom: '20px', position: 'relative', zIndex: 20 }}>
+                        <div className="badge-crest"><i className="fas fa-shield-alt"></i></div>
+                        <h2 className="card-title" style={{ fontSize: '1.35em', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            Verify Sign-in Request
+                        </h2>
+                        <div className="badge-title-sub">Step 2 · Phone Number Matching</div>
+                    </div>
+
+                    {/* How it works banner */}
+                    <div style={{ position: 'relative', zIndex: 20, marginBottom: '18px', padding: '10px 16px', background: 'linear-gradient(135deg, rgba(46,196,182,0.07), rgba(116,199,236,0.07))', border: '1px solid var(--border-color)', borderRadius: '10px', fontSize: '0.78em', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <i className="fas fa-circle-info" style={{ color: 'var(--aqua-primary)', fontSize: '1.1em', flexShrink: 0 }}></i>
+                        <span>
+                            A number is shown on your <strong>computer screen below</strong>. Scan the QR code with your phone — you'll see <strong>3 numbers</strong>. Tap the one that <strong>matches</strong> the number on your computer to approve sign-in.
+                        </span>
+                    </div>
+
+                    {/* Error message */}
+                    {error && (
+                        <div style={{ marginBottom: '16px', padding: '10px 14px', background: error.includes('expired') ? 'rgba(251,191,36,0.07)' : 'rgba(224,92,122,0.07)', border: `1px solid ${error.includes('expired') ? 'rgba(251,191,36,0.25)' : 'rgba(224,92,122,0.25)'}`, borderRadius: '8px', fontSize: '0.8em', color: error.includes('expired') ? '#ca8a04' : '#e05c7a', display: 'flex', alignItems: 'center', gap: '8px', position: 'relative', zIndex: 20 }}>
+                            <i className={error.includes('expired') ? 'fas fa-hourglass-half' : 'fas fa-exclamation-triangle'}></i> {error}
+                        </div>
+                    )}
+
+                    {/* Main Split Layout */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', position: 'relative', zIndex: 20, marginBottom: '20px' }}>
+
+                        {/* LEFT — PC Number Display */}
+                        <div style={{ background: 'linear-gradient(135deg, rgba(46,196,182,0.06), rgba(116,199,236,0.06))', border: '1.5px solid var(--border-color)', borderRadius: '14px', padding: '28px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', minHeight: '260px' }}>
+                            <div style={{ fontSize: '0.7em', color: 'var(--aqua-primary)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '10px', fontFamily: 'IBM Plex Mono, monospace', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <i className="fas fa-desktop"></i> This number appears on your computer
+                            </div>
+                            <div style={{ fontSize: '4.5em', fontWeight: 800, fontFamily: 'Space Grotesk, sans-serif', color: 'var(--aqua-dark)', textShadow: '0 0 30px rgba(46,196,182,0.3)', lineHeight: 1, margin: '12px 0', background: 'linear-gradient(135deg, rgba(46,196,182,0.12), rgba(116,199,236,0.12))', padding: '14px 32px', borderRadius: '14px', border: '2px solid var(--border-color)' }}>
+                                {targetNumber || '--'}
+                            </div>
+                            <div style={{ fontSize: '0.75em', color: 'var(--text-muted)', marginTop: '10px', display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'IBM Plex Mono, monospace' }}>
+                                <i className="fas fa-clock"></i> Expires in&nbsp;
+                                <span style={{ color: timer <= 10 ? '#e05c7a' : 'var(--aqua-primary)', fontWeight: 700, transition: 'color 0.3s' }}>{timer}s</span>
+                            </div>
+                            {/* Timer bar */}
+                            <div style={{ width: '100%', height: '3px', background: 'rgba(46,196,182,0.12)', borderRadius: '3px', marginTop: '10px', overflow: 'hidden' }}>
+                                <div style={{ height: '100%', width: `${(timer / 30) * 100}%`, background: timer <= 10 ? '#e05c7a' : 'var(--aqua-primary)', borderRadius: '3px', transition: 'width 1s linear, background 0.3s' }}></div>
+                            </div>
+                        </div>
+
+                        {/* RIGHT — QR Code (always shown) + phone simulator in offline mode */}
+                        <div style={{ background: 'linear-gradient(135deg, rgba(247,168,196,0.06), rgba(253,209,228,0.06))', border: '1.5px solid var(--border-pink)', borderRadius: '14px', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', minHeight: '260px', gap: '10px' }}>
+
+                            {/* QR label */}
+                            <div style={{ fontSize: '0.7em', color: 'var(--pink-dark)', textTransform: 'uppercase', letterSpacing: '0.12em', fontFamily: 'IBM Plex Mono, monospace', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <i className="fas fa-qrcode"></i>
+                                {isOfflineMode ? 'Scan QR (local demo)' : 'Scan QR with your phone'}
+                            </div>
+
+                            {/* QR Code container — generated by qrcode.js into this div */}
+                            <div style={{ background: 'white', padding: '8px', borderRadius: '12px', border: '2px solid var(--border-color)', boxShadow: '0 4px 16px rgba(46,196,182,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '164px', minHeight: '164px' }}>
+                                {qrUrl ? (
+                                    <div ref={qrRef} id="mfa-qr-canvas" style={{ lineHeight: 0 }}></div>
+                                ) : (
+                                    <div style={{ color: 'var(--text-muted)', fontSize: '0.8em', fontFamily: 'IBM Plex Mono', padding: '20px' }}>
+                                        <i className="fas fa-spinner fa-spin"></i><br/>Generating...
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Instruction */}
+                            <div style={{ fontSize: '0.72em', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                                {isOfflineMode ? (
+                                    <><i className="fas fa-info-circle" style={{ color: 'var(--aqua-primary)' }}></i> Server offline. Use buttons below to test.<br/><span style={{ color: 'var(--text-muted)' }}>Tap the number matching your computer.</span></>
+                                ) : (
+                                    <>Scan with your phone — tap the number<br/>that <strong>matches</strong> the one on your computer.</>  
+                                )}
+                            </div>
+
+                            {/* Offline phone simulator buttons */}
+                            {isOfflineMode && options.length > 0 && (
+                                <div style={{ width: '100%', maxWidth: '220px' }}>
+                                    <div style={{ fontSize: '0.65em', color: 'var(--aqua-dark)', fontFamily: 'IBM Plex Mono', marginBottom: '6px', fontWeight: 600 }}>
+                                        <i className="fas fa-mobile-alt"></i> Simulated phone — tap matching number:
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+                                        {options.map((opt, i) => (
+                                            <button
+                                                key={i}
+                                                onClick={() => handleLocalOptionClick(opt)}
+                                                style={{ background: 'linear-gradient(135deg, rgba(46,196,182,0.1), rgba(116,199,236,0.1))', border: '1.5px solid var(--border-color)', borderRadius: '10px', padding: '10px 0', fontSize: '1.25em', fontWeight: 700, cursor: 'pointer', color: 'var(--text-main)', fontFamily: 'Space Grotesk', transition: 'all 0.2s' }}
+                                                onMouseOver={e => { e.currentTarget.style.background = 'linear-gradient(135deg,rgba(46,196,182,0.25),rgba(116,199,236,0.25))'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                                                onMouseOut={e => { e.currentTarget.style.background = 'linear-gradient(135deg,rgba(46,196,182,0.1),rgba(116,199,236,0.1))'; e.currentTarget.style.transform = 'none'; }}
+                                            >
+                                                {opt}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div style={{ fontSize: '0.65em', color: 'var(--text-muted)', fontFamily: 'IBM Plex Mono', marginTop: '6px' }}>
+                                        Wrong taps: <span style={{ color: '#e05c7a', fontWeight: 600 }}>{attempts}</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Live mode — open phone link & status */}
+                            {!isOfflineMode && (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={() => window.open(qrUrl || `${appOrigin}/approve/${sessionId}`, '_blank')}
+                                        style={{ background: 'linear-gradient(135deg, var(--aqua-primary), var(--blue-primary))', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', fontSize: '0.73em', cursor: 'pointer', fontFamily: 'Space Grotesk', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 3px 10px var(--aqua-glow)' }}
+                                    >
+                                        <i className="fas fa-external-link-alt"></i> Open Phone Approval Page
+                                    </button>
+                                    <div style={{ fontSize: '0.63em', color: socketConnected ? '#16a34a' : '#e05c7a', fontFamily: 'IBM Plex Mono', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        <i className={socketConnected ? 'fas fa-circle-check' : 'fas fa-circle-xmark'}></i>
+                                        {socketConnected ? 'Gateway Connected — awaiting approval' : 'Server offline — switch to simulator'}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Bottom action row */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 20 }}>
+                        <button type="button" className="portal-btn portal-btn-secondary" style={{ width: 'auto', padding: '10px 20px', fontSize: '0.82em' }} onClick={onPrev}>
+                            <i className="fas fa-arrow-left" style={{ marginRight: '6px' }}></i> Back to Login
+                        </button>
+                        {isOfflineMode && (
+                            <button
+                                type="button"
+                                onClick={() => { setIsOfflineMode(false); initMfa(); }}
+                                style={{ background: 'none', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '8px 14px', fontSize: '0.72em', color: 'var(--aqua-primary)', cursor: 'pointer', fontFamily: 'IBM Plex Mono', display: 'flex', alignItems: 'center', gap: '6px' }}
+                            >
+                                <i className="fas fa-satellite-dish"></i> Switch to Live QR Mode
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // 3. SELECTION STAGE
+        const SelectScreen = ({ onNext, onPrev }) => (
+            <div className="portal-card" style={{maxWidth: '480px'}}>
+                <div className="card-header">
+                    <div className="card-icon"><i className="fas fa-microchip"></i></div>
+                    <h2 className="card-title">Smart B.Tech</h2>
+                    <p className="card-subtitle">Tap into the information.</p>
+                </div>
+                <div style={{marginBottom: '24px'}}>
+                    <div
+                        style={{
+                            cursor: 'pointer',
+                            padding: '28px 24px',
+                            textAlign: 'center',
+                            border: '1.5px solid var(--aqua-primary)',
+                            borderRadius: '14px',
+                            background: 'linear-gradient(135deg,rgba(46,196,182,0.07),rgba(116,199,236,0.07))',
+                            transition: 'all 0.25s',
+                            boxShadow: '0 4px 16px rgba(46,196,182,0.10)',
+                        }}
+                        onClick={() => onNext('dashboard')}
+                        onMouseEnter={e => { e.currentTarget.style.transform='translateY(-3px)'; e.currentTarget.style.boxShadow='0 10px 28px rgba(46,196,182,0.22)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.transform='none'; e.currentTarget.style.boxShadow='0 4px 16px rgba(46,196,182,0.10)'; }}
+                    >
+                        <div style={{fontSize:'2.6em', color:'var(--aqua-primary)', marginBottom:'12px'}}>
+                            <i className="fas fa-microchip"></i>
+                        </div>
+                        <div style={{fontFamily:'Space Grotesk,sans-serif', fontWeight:700, fontSize:'1.1em', color:'var(--aqua-dark)', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:'8px'}}>
+                            Smart B.Tech
+                        </div>
+                        <p style={{fontSize:'0.82em', color:'var(--text-muted)', margin:0, lineHeight:1.6}}>
+                            Syllabus logs, performance graphs, CGPA computation and all academic resources.
+                        </p>
+                        <div style={{marginTop:'14px', display:'inline-flex', alignItems:'center', gap:'6px', fontSize:'0.75em', color:'var(--aqua-primary)', fontFamily:'IBM Plex Mono,monospace', background:'rgba(46,196,182,0.10)', padding:'5px 14px', borderRadius:'20px', border:'1px solid rgba(46,196,182,0.25)'}}>
+                            <i className="fas fa-arrow-right"></i> Enter Portal
+                        </div>
+                    </div>
+                </div>
+                <button className="portal-btn portal-btn-secondary" onClick={onPrev}>
+                    Back to Gateway
+                </button>
+            </div>
+        );
+
+
+        // 4. CHAT / MENTOR PILOT SCREEN
+        const ChatScreen = ({ onReset }) => (
+            <div className="portal-card" style={{maxWidth: '750px', width: '90%'}}>
+                <div className="card-header" style={{textAlign: 'left', display: 'flex', justifySelf: 'stretch', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px', marginBottom: '20px'}}>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                        <div style={{fontSize: '2em', color: 'var(--brass-primary)'}}><i className="fas fa-brain"></i></div>
+                        <div>
+                            <h2 style={{fontSize: '1.2em'}}>LLM Engineer Pilot</h2>
+                            <p style={{fontSize: '0.75em', color: 'var(--text-muted)'}} className="data-text">AI Placement Assistant v1.4.0</p>
+                        </div>
+                    </div>
+                    <button className="portal-btn portal-btn-secondary" style={{width: 'auto', padding: '8px 16px', fontSize: '0.8em'}} onClick={onReset}>
+                        <i className="fas fa-sign-out-alt"></i> Leave Workspace
+                    </button>
+                </div>
+                
+                <div className="wireframe-container" style={{minHeight: '200px'}}>
+                    <div className="data-text" style={{color: 'var(--text-muted)', fontSize: '0.8em'}}>// INTERVIEW PREPARATION SHELL READY</div>
+                    <div className="wireframe-block short" style={{backgroundColor: 'var(--border-color)'}}></div>
+                    <div className="wireframe-block three-quarters"></div>
+                    <div className="wireframe-block"></div>
+                </div>
+                
+                <div style={{display: 'flex', gap: '12px'}}>
+                    <div style={{flex: 1, border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius-md)', padding: '12px', background: 'rgba(255,255,255,0.02)'}}>
+                        <p style={{color: 'var(--text-muted)', fontSize: '0.9em'}}>Prompt AI tutor...</p>
+                    </div>
+                    <button className="portal-btn portal-btn-primary" style={{width: 'auto'}}>
+                        Send <i className="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        );
+
+        // 5. DASHBOARD SCREEN — Premium 7-Card Shell
+        const DashboardScreen = ({ studentId, onReset }) => {
+            const cards = [
+                {
+                    id: 'smart-btech',
+                    color: 'c-aqua',
+                    icon: 'fa-microchip',
+                    title: 'Smart B.Tech',
+                    desc: 'Tap into the information.',
+                    badge: 'Academic Hub',
+                    href: 'finalhindu.html'
+                }
+            ];
+
+            const now = new Date();
+            const hour = now.getHours();
+            const greeting = hour < 12 ? '🌅 Good morning' : hour < 17 ? '☀️ Good afternoon' : '🌙 Good evening';
+
+            const handleCardClick = (href) => {
+                if (href) window.location.href = href;
+            };
+
+            return (
+                <div className="ds-shell">
+                    {/* Welcome bar */}
+                    <div className="ds-welcome-bar">
+                        <div>
+                            <div className="ds-greeting">{greeting}, {studentId || 'Student'} 🎓</div>
+                            <div className="ds-sub">Hindu Engineering College · Student Portal · {now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
+                        </div>
+                        <button className="ds-logout-btn" onClick={onReset} id="ds-logout-btn">
+                            <i className="fas fa-right-from-bracket"></i> Sign Out
+                        </button>
+                    </div>
+
+                    {/* Module cards */}
+                    <div className="ds-grid" style={{ gridTemplateColumns: '1fr', maxWidth: '520px', margin: '0 auto' }}>
+                        {cards.map((card, idx) => (
+                            <div
+                                key={card.id}
+                                id={`ds-card-${card.id}`}
+                                className={`ds-card ${card.color}`}
+                                style={{ animationDelay: `${idx * 0.06}s` }}
+                                onClick={() => handleCardClick(card.href)}
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={e => e.key === 'Enter' && handleCardClick(card.href)}
+                            >
+                                <div className="ds-card-glyph">
+                                    <i className={`fas ${card.icon}`}></i>
+                                </div>
+                                <div className="ds-card-title">{card.title}</div>
+                                <div className="ds-card-desc">{card.desc}</div>
+                                <div className="ds-card-footer">
+                                    <span className="ds-card-badge">{card.badge}</span>
+                                    <span className="ds-card-arrow"><i className="fas fa-arrow-right"></i></span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- MAIN APP SHELL COMPONENT ---
+
+        function App() {
+            // Stage state machine state: 'login' | 'otp' | 'select' | 'chat' | 'dashboard'
+            const [stage, setStage] = useState('login');
+            const [studentId, setStudentId] = useState('');
+
+            // Handle transition helpers
+            const handleNext = (nextStage, data) => {
+                if (stage === 'login') {
+                    if (nextStage && typeof nextStage === 'string') {
+                        // QR login fast-path: skip OTP + select, go straight to dashboard
+                        if (nextStage.startsWith('QR_AUTH_')) {
+                            setStudentId('QR Student');
+                            setStage('dashboard');
+                            return;
+                        }
+                        setStudentId(nextStage);
+                    }
+                    setStage('otp');
+                }
+                else if (stage === 'otp') setStage('select');
+                else if (stage === 'select') setStage(nextStage || 'dashboard');
+            };
+
+        const handleBack = () => {
+                if (stage === 'otp') setStage('login');
+                else if (stage === 'select') setStage('otp');
+            };
+
+            const handleReset = () => {
+                setStage('login');
+                setStudentId('');
+            };
+
+            return (
+                <React.Fragment>
+                    {/* Header */}
+                    <header className="app-header">
+                        <div className="logo-section">
+                            <i className="fas fa-graduation-cap logo-crest"></i>
+                            <div className="logo-text">
+                                <h1>Hindu Engineering College</h1>
+                                <p className="data-text">Student Portal & AI Tutor</p>
+                            </div>
+                        </div>
+                        <div className="system-status">
+                            <span className="status-dot"></span>
+                            <span className="data-text" style={{color: 'var(--brass-primary)'}}>{stage.toUpperCase()}</span>
+                        </div>
+                    </header>
+
+                    {/* Main Render Viewport based on State Machine */}
+                    <main className="portal-viewport">
+                        {stage === 'login'     && <LoginScreen onNext={(verifiedId) => handleNext(verifiedId)} />}
+                        {stage === 'otp'       && <OTPScreen studentId={studentId} onNext={() => handleNext()} onPrev={handleBack} />}
+                        {stage === 'select'    && <SelectScreen onNext={(target) => handleNext(target)} onPrev={handleBack} />}
+                        {stage === 'chat'      && <ChatScreen onReset={handleReset} />}
+                        {stage === 'dashboard' && <DashboardScreen studentId={studentId} onReset={handleReset} />}
+                    </main>
+
+                </React.Fragment>
+            );
+        }
+
+        // Render React Application
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
+
